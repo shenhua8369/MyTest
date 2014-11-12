@@ -11,6 +11,7 @@ var playerAnim = cc.Sprite.extend({
 	animatorJump:null,
 	ctor:function(){
 		this._super();
+		this.scheduleUpdate();
 //		player = new cc.Sprite(res.BackPng);
 //		this.addChild(player);
 		status = "run";
@@ -40,9 +41,11 @@ var playerAnim = cc.Sprite.extend({
 		}
 		animations.push(runFrames);
 		animations.push(jumpFrames);
-		
+
+
 		player = new cc.Sprite(runFrames[0]);
 		this.addChild(player);
+		player.retain();
 		
 		animation = new cc.Animation(animations[0],0.08);
 		animator = cc.Animate(animation);
@@ -52,49 +55,22 @@ var playerAnim = cc.Sprite.extend({
 		animatorJump = cc.Animate(animationJump);
 		seqJump = cc.sequence(animatorJump);
 		seqJump.retain();
+//		this.run();
 		return true;
-	},
-	action:function(status){
-//		var animation;
-//		var animator;
-//		var seq;
-		
-		if(status === "run"){
-//			animation = new cc.Animation(animations[0],0.08);
-//			animator = cc.Animate(animation);
-//			seq = cc.sequence(animator);
-			player.runAction(seq.repeatForever());
-		}
-		if(status === "jump"){
-			animation = new cc.Animation(animations[1],0.08);
-			animator = cc.Animate(animation);
-			seq = cc.sequence(animator);
-			player.stopAction(seq);
-//			player.runAction(seq.repeat(1));
-		}
-	},
-	
+    },
 	run:function(){
-//		var animation;
-//		var animator;
-//		var seq;
-//		animation = new cc.Animation(animations[0],0.08);
-//		animator = cc.Animate(animation);
-//		seq = cc.sequence(animator);
 		player.stopAllActions();
 		player.runAction(seqRun.repeatForever());
 		seqRun.repeatForever().retain();
 	},
 	jump:function(){
-//		var animation;
-//		var animator;
-//		var seq;
-//		animation = new cc.Animation(animations[1],0.08);
-//		animator = cc.Animate(animation);
-//		seq = cc.sequence(animator);
-////		player.stopAction(seq);
 		player.stopAllActions();
 		player.runAction(seqJump.repeat(1));
 		seqJump.repeat(1).retain();
-	}
+	},
+    update:function(){
+        player.x = 0;
+        player.y = 0;
+    }
+
 })
