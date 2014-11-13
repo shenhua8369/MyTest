@@ -1,0 +1,11 @@
+{
+	"scenes":[
+		{"name":"scene1","content":{
+			"building":[
+				{"type":1,"x":0,"y":0},
+				{"type":2,"x":200,"y":200}
+				]
+			},"reword":1000}
+	]
+		
+}

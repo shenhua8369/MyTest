@@ -1,22 +1,63 @@
 /**
  * Created by Administrator on 2014/11/4.
  */
-var NewGameLayer0 = cc.Layer.extend({
+var speed = 30;
+var NewGameLayer0 = cc.Layer.extend(
+		{
     sprite:null,
 //    bg1:null,
 //    bg2:null,
     space:null,
     body:null,
+    speedX:0,
+    wall:null,
     initPhysics:function(){
     	var staticBody = this.space.staticBody;
     	
-    	var wall = new cp.SegmentShape(staticBody,cp.v(0, 0),cp.v(1136, 0),0);
-    	wall.setElasticity(1);
-    	wall.setFriction(1);
+    	wall = new cp.SegmentShape(staticBody,cp.v(0, 0),cp.v(1280, 0),0);
+    	wall.setElasticity(0);
+    	wall.setFriction(0);
+    	wall.setCollisionType(0);
     	this.space.addStaticShape(wall);
     	
+    	
+    	
+//    	var building = new cc.Sprite(res.Build2Png);
+//    	building.x = 300;
+//    	building.y = 0;
+//    	this.addChild(building);
+    	
+    	
     	this.space.gravity = cp.v(0,-2000);
-    	this.space.iterations = 15;
+    	this.space.iterations = 60;
+    },
+    createPhysicsBuilding:function(){
+    	var staticBody = this.space.staticBody;
+    	var spriteBuilding = new cc.Sprite(res.Build2Png);
+    	spriteBuilding.x = 300;
+    	spriteBuilding.y = spriteBuilding.height/2;
+    	this.addChild(spriteBuilding);
+    	
+    	
+    	var wall1 = new cp.SegmentShape(staticBody,cp.v(300-spriteBuilding.width/2, 0),cp.v(300-spriteBuilding.width/2, spriteBuilding.height),1);
+    	wall1.setElasticity(0);
+    	wall1.setFriction(0);
+    	wall1.setCollisionType(3);
+    	this.space.addStaticShape(wall1);
+    	
+    	var wall2 = new cp.SegmentShape(staticBody,cp.v(300-spriteBuilding.width/2, spriteBuilding.height),cp.v(300+spriteBuilding.width/2, spriteBuilding.height),1);
+    	wall2.setElasticity(0);
+    	wall2.setFriction(0);
+    	wall2.setCollisionType(1);
+    	this.space.addStaticShape(wall2);
+    	
+    	var wall3 = new cp.SegmentShape(staticBody,cp.v(300+spriteBuilding.width/2, 0),cp.v(300+spriteBuilding.width/2, spriteBuilding.height),1);
+    	wall3.setElasticity(0);
+    	wall3.setFriction(0);
+    	wall3.setCollisionType(3);
+    	this.space.addStaticShape(wall3);
+    	
+    	
     },
     createPhysicsSprite:function(pos,file,collisionType,width,height){
     	var body = new cp.Body(1,cp.momentForBox(1,37,36));
@@ -24,8 +65,8 @@ var NewGameLayer0 = cc.Layer.extend({
     	this.space.addBody(body);
     	
     	var shape = new cp.BoxShape(body,37,36);
-    	shape.setElasticity(0.5);
-    	shape.setFriction(0.5);
+    	shape.setElasticity(0);
+    	shape.setFriction(0);
     	shape.setCollisionType(collisionType);
     	this.space.addShape(shape);
 
@@ -37,10 +78,17 @@ var NewGameLayer0 = cc.Layer.extend({
     ctor:function(){
         this._super();
         var size0 = cc.winSize;
-        //初始化空间
+        //初始化物理空间
         this.space = new cp.Space();
+        //是否显示刚体
         this.setupDebugNode();
 //        this.initPysics();
+        
+        //读取数据
+        var data = new Data();
+        data.ctor();
+        var sData = data.sceneArr;
+//        cc.log("data++++++++++",sData[0]);
         //添加背景
         var bg1 = new cc.Sprite(res.BackPng);
         bg1.attr({
@@ -73,7 +121,6 @@ var NewGameLayer0 = cc.Layer.extend({
         menu.y = 0;
         this.addChild(menu, 1);
    
-        
         //添加角色动画
         var texture = cc.textureCache.addImage(res.PlayerPng);
         
@@ -102,8 +149,11 @@ var NewGameLayer0 = cc.Layer.extend({
         this.addChild(p);
         
         this.initPhysics();
+        this.createPhysicsBuilding();
         this.scheduleUpdate();
         body = this.createPhysicsSprite(cc.p(100,100),res.CloseNormal_png,1,37,36);
+        
+//        var body0 = this.createPhysicsSprite(cc.p(100,100),res.CloseNormal_png,2,37,36);
         
         p.x  = 100;
         p.y  = 100;
@@ -119,21 +169,51 @@ var NewGameLayer0 = cc.Layer.extend({
         			if(key == 24){
         				p.run();
         				cc.log("run+++++++++");
-        				body.applyImpulse(cp.v(150,0),cp.v(0,0))
+        				if(isAir == true){
+        					return;
+        				}
+        				playerSpeedX = speed;
+        				body.applyImpulse(cp.v(50,0),cp.v(0,0))
+        			}
+        			if(key == 23){
+        				p.run();
+        				cc.log("run+++++++++");
+        				if(isAir == true){
+        					
+        					return;
+        				}
+        				body.applyImpulse(cp.v(-speed,0),cp.v(0,0))
+        				playerSpeedX = -speed;
         			}
         			if(key == 56){
         				p.jump();  
         				cc.log("jump+++++++++");
-        				body.applyImpulse(cp.v(0,800),cp.v(0,0))
+        				if(isAir == true){
+        					body.applyImpulse(cp.v(100,0),cp.v(0,0))
+        					return
+        				}
+        				body.applyImpulse(cp.v(20,800),cp.v(0,0))
+        				
         			}
         			
         		},
-        		onKeyReleased:function(key,event){
+        		onKeyReleased:function(key,event){ 
+        			if(key == 24){
+//        				body.applyImpulse(cp.v(-speed,0),cp.v(0,0));
+        			}
+        			if(key == 23){
+//        				body.applyImpulse(cp.v(speed,0),cp.v(0,0));
+        			}
+        			if(key == 56){
+//        				if(is)
+//        				body.applyImpulse(cp.v(0,0),cp.v(0,0));
+        			}
         			
         		}
         	}, this)
         	
         }
+
         if('mouse' in cc.sys.capabilities){
         	cc.eventManager.addListener({
         		event:cc.EventListener.MOUSE,
@@ -153,6 +233,12 @@ var NewGameLayer0 = cc.Layer.extend({
         	cc.log("ceshi++++++++++");
         	p.run();
         }
+        this.space.addCollisionHandler( 1, 0,
+        		this.collisionBegin.bind(this),
+        		this.collisionPre.bind(this),
+        		this.collisionPost.bind(this),
+        		this.collisionSeparate.bind(this)
+        );
         return true;
     },
     onEnter : function () {
@@ -179,12 +265,35 @@ var NewGameLayer0 = cc.Layer.extend({
         p.x = pos.x;
     	p.y = pos.y;
 
+    	this.x -=1;
+//    	if(isAir == true){
+//    		body.applyImpulse(cp.v(0,0),cp.v(0,0));
+//    	}else{
+    		
+//    	}
+    	
     },
-    collisionBegin:function(){
+    //碰撞开始
+    collisionBegin:function(arbiter, space){
     	cc.log("碰撞开始");
+    	body.setVel(cp.v(80,0));
+    	isAir = false;
     },
-//    collisionPre
-    
+    //接触中
+    collisionPre : function ( arbiter, space ) {
+    	cc.log('collision pre');
+    	return true;
+    },
+
+    collisionPost : function ( arbiter, space ) {
+    	
+    	cc.log('collision post');
+    },
+    //碰撞分开
+    collisionSeparate : function ( arbiter, space ) {
+    	cc.log('collision separate');
+    	isAir = true;
+    },
 })
 
 

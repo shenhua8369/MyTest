@@ -18,7 +18,14 @@ var res = {
     RightBtnPng:"res/rightBtn.png"
 };
 
+var jsonRes = {
+		SceneData:"res/sceneData.json"
+};
+
 var g_resources = [];
 for (var i in res) {
     g_resources.push(res[i]);
+}
+for (var j in jsonRes) {
+	g_resources.push(jsonRes[j]);
 }
